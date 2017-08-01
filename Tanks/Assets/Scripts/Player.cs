@@ -1,70 +1,95 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class Player : MonoBehaviour {
-  Rigidbody rigid;
-  float speed = 5.0f;
-  float rotationSpeed = 50f;
-  float shotSpeed = 40f;
-  float fireRate = 1f;
-  float lastShot = 0f;
-  Vector3 direction = Vector3.forward;
 
-  public GameObject bullet;
+    public bool up, down, left, right;
+    Rigidbody2D rigid;
+    public GameEngine.InputDirection dir;
+    public float moveSpeed = 3.0f;
+    public float shotSpeed = 6.0f;
+
+    public GameObject bulletGO;
+    public AudioClip shotFired;
+    public AudioClip explosion;
+    AudioSource audioSource;
 
 	// Use this for initialization
 	void Start () {
-    rigid = this.GetComponent<Rigidbody>();
+        up = false;
+        down = false;
+        left = false;
+        right = false;
+        dir = GameEngine.InputDirection.Idle;
+
+        audioSource = GetComponent<AudioSource>();
+        rigid = GetComponent<Rigidbody2D>();
+	}
+	
+	// Update is called once per frame
+    void Update () {
+        rigid.velocity = GameEngine.move[GetInputDirection()] * moveSpeed;
+
+        CheckFire();
 	}
 
-  // Update is called once per frame
-  void Update()
-  {
-    if (Input.GetKeyDown(KeyCode.LeftShift))
-    {
-      speed = 10.0f;
-      rotationSpeed = 75f;
-    }
-    if (Input.GetKeyUp(KeyCode.LeftShift))
-    {
-      speed = 5.0f;
-      rotationSpeed = 50f;
+    GameEngine.InputDirection GetInputDirection() {
+
+        up = Input.GetKey(KeyCode.UpArrow);
+        down = Input.GetKey(KeyCode.DownArrow);
+        left = Input.GetKey(KeyCode.LeftArrow);
+        right = Input.GetKey(KeyCode.RightArrow);
+
+        if (!up && !left && !down && !right) {
+            return GameEngine.InputDirection.Idle;
+        }
+
+        if (up && !left && !down && !right) {
+            return GameEngine.InputDirection.North;
+        }
+
+        if (up && !left && !down && right) {
+            return GameEngine.InputDirection.Northeast;
+        }
+
+        if (!up && !left && !down && right) {
+            return GameEngine.InputDirection.East;
+        }
+
+        if (!up && !left && down && right) {
+            return GameEngine.InputDirection.Southeast;
+        }
+
+        if (!up && !left && down && !right) {
+            return GameEngine.InputDirection.South;
+        }
+
+        if (!up && left && down && !right) {
+            return GameEngine.InputDirection.Southwest;
+        }
+
+        if (!up && left && !down && !right) {
+            return GameEngine.InputDirection.West;
+        }
+
+        if (up && left && !down && !right) {
+            return GameEngine.InputDirection.Northwest;
+        }
+
+        return GameEngine.InputDirection.Idle;
     }
 
-    // MOVEMENT ------------------------------------------------------
+    void CheckFire() {
+        if (Input.GetKeyDown(KeyCode.Space)) {
+            GameObject bullet = Instantiate(bulletGO, transform.position + Vector3.right, Quaternion.identity);
+            bullet.GetComponent<Rigidbody2D>().velocity = Vector2.right * shotSpeed;
 
-    if (Input.GetKey(KeyCode.W))
-    {
-      rigid.velocity = speed * direction;
+            audioSource.PlayOneShot(shotFired);
+        }
     }
 
-    if (Input.GetKey(KeyCode.S))
-    {
-      rigid.velocity = speed * -direction;
+    public void Explosion() {
+        audioSource.PlayOneShot(explosion);
     }
-
-    if (Input.GetKey(KeyCode.A))
-    {
-      this.transform.Rotate(0, -rotationSpeed * Time.deltaTime, 0);
-      direction = this.transform.forward;
-    }
-
-    if (Input.GetKey(KeyCode.D))
-    {
-      this.transform.Rotate(0, rotationSpeed * Time.deltaTime, 0);
-      direction = this.transform.forward;
-    }
-
-    // OTHER ---------------------------------------------------------
-
-    if (Input.GetKey(KeyCode.Space))
-    {
-      if (Time.time - lastShot > fireRate)
-      {
-        lastShot = Time.time;
-        GameObject shot = Instantiate(bullet, this.transform.position, Quaternion.identity) as GameObject;
-        shot.GetComponent<Rigidbody>().velocity = shotSpeed * direction;
-      }
-    }
-  }
 }

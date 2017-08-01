@@ -1,19 +1,24 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class Bullet : MonoBehaviour {
-  float spawnTime, lifeTime = 10f;
+    float fired, duration = 5f;
 
 	// Use this for initialization
 	void Start () {
-    spawnTime = Time.time;
+        fired = Time.time;
 	}
 	
 	// Update is called once per frame
 	void Update () {
-	  if (Time.time - spawnTime >= lifeTime)
-    {
-      Destroy(this.gameObject);
-    }
+        if (Time.time - fired > duration) {
+            Destroy(this.gameObject);
+        }
 	}
+
+    void OnTriggerEnter2D(Collider2D col) {
+        Destroy(this.gameObject);
+    }
+
 }
