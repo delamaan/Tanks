@@ -1,0 +1,242 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Tanks</title>
+    <script src="phaser.min.js"></script>
+</head>
+<body>
+
+<div id="game" style="width:800px;margin:0 auto;"></div>
+
+<script type="text/javascript">
+
+window.onload = function() {
+    var cameraWidth = 800;
+    var cameraHeight = 600;
+
+    var game = new Phaser.Game(cameraWidth, cameraHeight, Phaser.AUTO, 'game', {
+        preload: preload, create: create, update: update, render: render
+    });
+
+    // ============== //
+    // Game variables //
+    // ============== //
+
+    var gameWidth = 5000;
+    var gameHeight = cameraHeight;
+    var tileSize = 64;
+    var groundStart = tileSize*3;
+
+    var reloading = false;
+    var reloadTime = 1000;
+    var bulletTTL = 1000;
+
+    // ==================== //
+    // Preload: load assets //
+    // ==================== //
+
+    function preload() {
+        game.load.image('goblin', 'sprites/Goblin_1.gif');
+        game.load.image('tank', 'sprites/RedTank.gif');
+        game.load.image('shell', 'sprites/RedTankShell.gif');
+        game.load.image('dirt', 'sprites/TileDirt.gif');
+        game.load.image('skyDirt', 'sprites/TileSkyDirt.gif');
+        game.load.image('sky', 'sprites/TileSky.gif');
+    }
+
+    // =========================================== //
+    // Create: instantiate game objects and groups //
+    // =========================================== //
+
+    function create() {
+        // ===== //
+        // Stage //
+        // ===== //
+
+        game.add.tileSprite(
+            0, 0, gameWidth, tileSize*2, 'sky'
+        );
+        game.add.tileSprite(
+            0, tileSize*2, gameWidth, tileSize, 'skyDirt'
+        );
+        game.add.tileSprite(
+            0, tileSize*3, gameWidth, gameHeight - tileSize*3, 'dirt'
+        );
+
+        game.world.setBounds(0, 0, gameWidth, gameHeight);
+
+        game.physics.startSystem(Phaser.Physics.ARCADE);
+
+        cursors = game.input.keyboard.createCursorKeys();
+
+        // ============================= //
+        // Groups: collection of sprites //
+        // ============================= //
+
+        playerProjectiles = game.add.group();
+        playerProjectiles.enableBody = true;
+
+        enemies = game.add.group();
+        enemies.enableBody = true;
+        enemies.collideWorldBounds = true;
+
+        // ====== //
+        // Player //
+        // ====== //
+
+        player = game.add.sprite(100, 300, 'tank');
+        player.anchor.setTo(0.5, 0.5);
+
+        game.physics.arcade.enable(player);
+        player.body.collideWorldBounds = true;
+
+        // ======= //
+        // Enemies //
+        // ======= //
+
+        spawnEnemy(300, 300, 'goblin');
+        spawnEnemy(700, 200, 'goblin');
+        spawnEnemy(450, 500, 'goblin');
+        spawnEnemy(800, 450, 'goblin');
+        spawnEnemy(700, 350, 'goblin');
+
+        // ====== //
+        // Camera //
+        // ====== //
+
+        game.camera.follow(player, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
+        game.camera.deadzone = new Phaser.Rectangle(50, 50, 50, cameraHeight);
+    }
+
+    // ================= //
+    // Update: main loop //
+    // ================= //  
+
+    function update() {
+        // ========== //
+        // Collisions //
+        // ========== //
+
+        game.physics.arcade.collide(playerProjectiles, enemies, hit);
+
+        // ===== //
+        // State //
+        // ===== //
+
+        if (reloading) {
+            player.rotation -= 0.2;
+        }
+
+        // =============== //
+        // Player Movement //
+        // =============== //
+
+        // Horizontal Movement
+        if (cursors.left.isDown)
+        {
+            player.body.velocity.x = -150;
+        }
+        else if (cursors.right.isDown)
+        {
+            player.body.velocity.x = 150;
+        }
+        else {
+            player.body.velocity.x = 0;
+        }
+
+        // Vertical Movement
+        if (cursors.up.isDown) {
+            player.body.velocity.y = -150;
+        }
+        else if (cursors.down.isDown) {
+            player.body.velocity.y = 150;
+        }
+        else {
+            player.body.velocity.y = 0;
+        }
+
+        // Restrict Vertical Movement
+        if (player.y < groundStart) {
+            player.y = groundStart;
+        }
+
+        // ============== //
+        // Player Actions //
+        // ============== //
+
+        // Main Gun
+        if (!reloading && game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+            fire();
+        }
+    }
+
+    // ========================== //
+    // Render: debugging purposes //
+    // ========================== //
+
+    function render() {
+        // game.debug.body(player);
+
+        // playerProjectiles.forEachAlive(game.debug.body, game.debug);
+
+        // game.debug.cameraInfo(game.camera, 30, 30);
+    }
+
+    // ================ //
+    // Helper functions //
+    // ================ //
+
+    // player bullets hitting enemies
+    function hit(projectile, enemy) {
+        projectile.kill();
+        enemy.kill();
+        game.camera.shake(0.02, 500);
+    }
+
+    // instantiate player bullet
+    function fire() {
+        var shot = playerProjectiles.create(player.x, player.y - player.height/2 - 10, 'shell');
+
+        shot.body.velocity.x = player.body.velocity.x + 600;
+        shot.body.velocity.y = player.body.velocity.y;
+
+        shot.body.setSize(32, 32, 16, 16);
+
+        // reloading
+        reloading = true;
+        setTimeout(function() {
+            reloading = false;
+            player.rotation = 0;
+        }, reloadTime);
+
+        // expiration: clearing memory usage
+        setTimeout(function() {
+            if (shot.alive) {
+                shot.kill();
+            }
+            shot.destroy();
+        }, bulletTTL);
+    }
+
+    // instantiate enemy
+    function spawnEnemy(x, y, sprite) {
+        var e = enemies.create(x, y, sprite);
+        e.body.setSize(32, 56, 16, 4);
+        e.anchor.setTo(0.5, 0.5);
+
+        // silly AI movement
+        setInterval(function() {
+            var speed = Math.floor(Math.random() * 51);
+            var horizontal = Math.floor(Math.random() * 3) - 1;
+            var vertical = Math.floor(Math.random() * 3) - 1;
+            e.body.velocity.x = horizontal * speed;
+            e.body.velocity.y = vertical * speed;
+        }, 100)
+    }
+};
+
+</script>
+
+</body>
+</html>
