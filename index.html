@@ -29,24 +29,25 @@ window.onload = function() {
     var groundStart = tileSize*3;
 
     var shotSpeed = 600;
-    var shotCount = 0;
-    var shotCapacity = 5;
     var reloading = false;
     var reloadTime = 1000;
-    var bulletTTL = 1000;
-    var fired = false;
+    var bulletTTL = 1500;
+
+    var bossFight = false;
+    var bossArenaWidth = gameWidth - cameraWidth;
 
     // ==================== //
     // Preload: load assets //
     // ==================== //
 
     function preload() {
-        game.load.image('goblin', 'sprites/Goblin_1.gif');
-        game.load.image('tank', 'sprites/RedTank.gif');
-        game.load.image('shell', 'sprites/RedTankShell.gif');
-        game.load.image('dirt', 'sprites/TileDirt.gif');
-        game.load.image('skyDirt', 'sprites/TileSkyDirt.gif');
-        game.load.image('sky', 'sprites/TileSky.gif');
+        game.load.image('goblin', 'sprites/goblins/Fatty.gif');
+        game.load.image('SuperFatty', 'sprites/bosses/SuperFatty.gif')
+        game.load.image('tank', 'sprites/tanks/RedTank.gif');
+        game.load.image('shell', 'sprites/tanks/RedTankShell.gif');
+        game.load.image('dirt', 'sprites/tiles/TileDirt.gif');
+        game.load.image('skyDirt', 'sprites/tiles/TileSkyDirt.gif');
+        game.load.image('sky', 'sprites/tiles/TileSky2.gif');
     }
 
     // =========================================== //
@@ -85,6 +86,10 @@ window.onload = function() {
         enemies.enableBody = true;
         enemies.collideWorldBounds = true;
 
+        bosses = game.add.group();
+        bosses.enableBody = true;
+        bosses.collideWorldBounds = true;
+
         // ====== //
         // Player //
         // ====== //
@@ -110,7 +115,7 @@ window.onload = function() {
         // ====== //
 
         game.camera.follow(player, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
-        // game.camera.deadzone = new Phaser.Rectangle(50, 50, 50, cameraHeight);
+        game.camera.deadzone = new Phaser.Rectangle(100, 50, 200, cameraHeight);
     }
 
     // ================= //
@@ -123,13 +128,17 @@ window.onload = function() {
         // ========== //
 
         game.physics.arcade.collide(playerProjectiles, enemies, hit);
+        game.physics.arcade.collide(playerProjectiles, bosses, damage);
 
         // ===== //
         // State //
         // ===== //
 
-        if (reloading) {
-            // player.rotation -= 0.2;
+        if (!bossFight) {
+            checkCameraPosition();
+        }
+        else {
+            restrictHorizontalMovement();
         }
 
         // =============== //
@@ -140,12 +149,10 @@ window.onload = function() {
         if (cursors.left.isDown)
         {
             player.body.velocity.x = -150;
-            player.scale.x = -1;
         }
         else if (cursors.right.isDown)
         {
             player.body.velocity.x = 150;
-            player.scale.x = 1;
         }
         else {
             player.body.velocity.x = 0;
@@ -162,23 +169,19 @@ window.onload = function() {
             player.body.velocity.y = 0;
         }
 
-        // Restrict Vertical Movement
-        if (player.y < groundStart) {
-            player.y = groundStart;
-        }
+        restrictVerticalMovement();
 
         // ============== //
         // Player Actions //
         // ============== //
 
         // Main Gun
-        if (!fired && !reloading && game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
-            fired = true;
+        if (!reloading && game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
             fire();
         }
 
-        if (fired && !game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
-            fired = false;
+        if (!bossFight && game.input.keyboard.isDown(Phaser.Keyboard.B)) {
+            player.x = 4200;
         }
     }
 
@@ -202,34 +205,43 @@ window.onload = function() {
     function hit(projectile, enemy) {
         projectile.kill();
         enemy.kill();
-        game.camera.shake(0.02, 500);
+
+        var deadBody = game.add.sprite(enemy.x+16, enemy.y+16, 'goblin');
+        deadBody.rotation = 90;
+        deadBody.anchor.setTo(0.5, 0.5);
+    }
+
+    function damage(projectile, boss) {
+        projectile.kill();
+        boss.health--;
+        boss.body.velocity.x = 0;
+
+        if (boss.health <= 0) {
+            boss.kill();
+            var deadBody = game.add.sprite(boss.x+64, boss.y+64, 'SuperFatty');
+            deadBody.rotation = 90;
+            deadBody.anchor.setTo(0.5, 0.5);
+        }
     }
 
     // instantiate player bullet
     function fire() {
-        var dir = player.scale.x;
 
         var xPos = player.x;
         var yPos = player.y - 32 - 10;
 
         var shot = playerProjectiles.create(xPos, yPos, 'shell');
 
-        shot.scale.x = dir;
-
-        shot.body.velocity.x = dir * shotSpeed;
+        shot.body.velocity.x = shotSpeed;
         shot.body.setSize(32, 32, 16, 16);
 
-        shotCount++;
-
-        if (shotCount >= shotCapacity) {
-            // reloading
-            reloading = true;
-            setTimeout(function() {
-                shotCount = 0;
-                reloading = false;
-                player.rotation = 0;
-            }, reloadTime);
-        }
+        // reloading
+        reloading = true;
+        setTimeout(function() {
+            shotCount = 0;
+            reloading = false;
+            player.rotation = 0;
+        }, reloadTime);
 
         // expiration: clearing memory usage
         setTimeout(function() {
@@ -254,6 +266,36 @@ window.onload = function() {
             e.body.velocity.x = horizontal * speed;
             e.body.velocity.y = vertical * speed;
         }, 100)
+    }
+
+    function spawnBoss() {
+        boss = bosses.create(gameWidth - 250, gameHeight/2, 'SuperFatty');
+        boss.body.setSize(64, 112, 32, 12);
+        boss.anchor.setTo(0.5, 0.5);
+        boss.health = 3;
+    }
+
+    function checkCameraPosition() {
+        if (game.camera.x >= bossArenaWidth) {
+            bossFight = true;
+            game.camera.follow(null);
+            spawnBoss();
+        }
+    }
+
+    function restrictVerticalMovement() {
+        if (player.y < groundStart) {
+            player.y = groundStart;
+        }
+    }
+
+    function restrictHorizontalMovement() {
+        if (player.x < bossArenaWidth + tileSize) {
+            player.x = bossArenaWidth + tileSize;
+        }
+        if (player.x > gameWidth - tileSize) {
+            player.x = gameWidth - tileSize;
+        }
     }
 };
 
