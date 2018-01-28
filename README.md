@@ -7,7 +7,7 @@ A shooter game in the browser. Built with [Phaser](http://phaser.io/) and [Piske
 
 [![Tank](https://github.com/RamblingWare/Tanks/blob/master/sprites/tanks/RedTank.gif)]()&nbsp;[![Tank](https://github.com/RamblingWare/Tanks/blob/master/sprites/goblins/Fatty.gif)]()
 
-# 🎮 [Click here to play](https://ramblingware.github.io/Tanks/index.html) 🎮
+# 🎮 [Click here to play](https://ramblingware.github.io/Tanks/) 🎮
 
 
 ## How to Play
