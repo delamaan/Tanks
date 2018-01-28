@@ -33,6 +33,8 @@ window.onload = function() {
     var reloadTime = 1000;
     var bulletTTL = 1500;
 
+    var enemyShotSpeed = 300;
+
     var bossFight = false;
     var bossArenaWidth = gameWidth - cameraWidth;
     var win = false;
@@ -44,8 +46,11 @@ window.onload = function() {
     // ==================== //
 
     function preload() {
-        game.load.image('goblin', 'sprites/goblins/Fatty.gif');
-        game.load.image('superFatty', 'sprites/bosses/SuperFatty.gif')
+        game.load.image('goblet', 'sprites/goblins/Goblet.gif');
+        game.load.image('axe', 'sprites/goblins/GobletBullet.gif');
+        game.load.image('fatty', 'sprites/goblins/Fatty.gif');
+        game.load.image('spear', 'sprites/goblins/FattyBullet.gif');
+        game.load.image('superFatty', 'sprites/bosses/SuperFatty.gif');
         game.load.image('tank', 'sprites/tanks/RedTank.gif');
         game.load.image('shell', 'sprites/tanks/RedTankShell.gif');
         game.load.image('dirt', 'sprites/tiles/TileDirt.gif');
@@ -93,6 +98,9 @@ window.onload = function() {
         playerProjectiles = game.add.group();
         playerProjectiles.enableBody = true;
 
+        enemyProjectiles = game.add.group();
+        enemyProjectiles.enableBody = true;
+
         deadBodies = game.add.group();
 
         // ====== //
@@ -103,17 +111,18 @@ window.onload = function() {
         player.anchor.setTo(0.5, 0.5);
 
         game.physics.arcade.enable(player);
+        player.body.setSize(64, 40, 0, 12);
         player.body.collideWorldBounds = true;
 
         // ======= //
         // Enemies //
         // ======= //
 
-        spawnEnemy(300, 300, 'goblin');
-        spawnEnemy(700, 200, 'goblin');
-        spawnEnemy(450, 500, 'goblin');
-        spawnEnemy(800, 450, 'goblin');
-        spawnEnemy(700, 350, 'goblin');
+        spawnFatty(1100, 300);
+        spawnFatty(1100, 500);
+        spawnGoblet(800, 200);
+        spawnGoblet(800, 400);
+        spawnGoblet(800, 600);
 
         // ====== //
         // Camera //
@@ -133,6 +142,7 @@ window.onload = function() {
 
         game.physics.arcade.collide(playerProjectiles, enemies, hit);
         game.physics.arcade.collide(playerProjectiles, bosses, damage);
+        game.physics.arcade.collide(enemyProjectiles, player, die);
 
         // ===== //
         // State //
@@ -200,7 +210,7 @@ window.onload = function() {
     function render() {
         // game.debug.body(player);
 
-        // playerProjectiles.forEachAlive(game.debug.body, game.debug);
+        // enemyProjectiles.forEachAlive(game.debug.body, game.debug);
 
         // game.debug.cameraInfo(game.camera, 30, 30);
     }
@@ -213,8 +223,9 @@ window.onload = function() {
     function hit(projectile, enemy) {
         projectile.kill();
         enemy.kill();
+        clearInterval(enemy.attack);
 
-        var deadBody = deadBodies.create(enemy.x+16, enemy.y+16, 'goblin');
+        var deadBody = deadBodies.create(enemy.x+16, enemy.y+16, enemy.key);
         deadBody.rotation = 90;
         deadBody.anchor.setTo(0.5, 0.5);
     }
@@ -236,6 +247,11 @@ window.onload = function() {
         }
     }
 
+    function die(projectile, player) {
+        projectile.kill();
+        player.kill();
+    }
+
     // instantiate player bullet
     function fire() {
 
@@ -245,7 +261,7 @@ window.onload = function() {
         var shot = playerProjectiles.create(xPos, yPos, 'shell');
 
         shot.body.velocity.x = shotSpeed;
-        shot.body.setSize(32, 32, 16, 16);
+        shot.body.setSize(18, 10, 22, 26);
 
         // reloading
         reloading = true;
@@ -265,10 +281,23 @@ window.onload = function() {
     }
 
     // instantiate enemy
-    function spawnEnemy(x, y, sprite) {
-        var e = enemies.create(x, y, sprite);
+    function spawnFatty(x, y) {
+        var e = enemies.create(x, y, 'fatty');
         e.body.setSize(32, 56, 16, 4);
         e.anchor.setTo(0.5, 0.5);
+
+        e.attack = setInterval(function() {
+            var spear = enemyProjectiles.create(e.x, e.y - e.height/2, 'spear');
+            spear.body.setSize(30, 14, 2, 24);
+            spear.body.velocity.x = -2 * enemyShotSpeed;
+
+            setTimeout(function() {
+                if (spear.alive) {
+                    spear.kill();
+                }
+                spear.destroy();
+            }, bulletTTL);
+        }, 1500);
 
         // silly AI movement
         // setInterval(function() {
@@ -278,6 +307,38 @@ window.onload = function() {
         //     e.body.velocity.x = horizontal * speed;
         //     e.body.velocity.y = vertical * speed;
         // }, 100);
+    }
+
+    function spawnGoblet(x, y) {
+        var e = enemies.create(x, y, 'goblet');
+        // e.body.setSize()
+        e.anchor.setTo(0.5, 0.5);
+
+        e.attack = setInterval(function() {
+            var axe1 = enemyProjectiles.create(e.x, e.y - e.height/2, 'axe');
+            axe1.body.setSize(16, 16, 8, 8);
+            axe1.body.velocity.x = -1 * enemyShotSpeed;
+            axe1.body.velocity.y = -0.5 * enemyShotSpeed;
+
+            var axe2 = enemyProjectiles.create(e.x, e.y - e.height/2, 'axe');
+            axe2.body.setSize(16, 16, 8, 8);
+            axe2.body.velocity.x = -1 * enemyShotSpeed;
+            axe2.body.velocity.y = 0.5 * enemyShotSpeed;
+
+            setTimeout(function() {
+                if (axe1.alive) {
+                    axe1.kill();
+                }
+                axe1.destroy();
+            }, bulletTTL);
+
+            setTimeout(function() {
+                if (axe2.alive) {
+                    axe2.kill();
+                }
+                axe2.destroy();
+            }, bulletTTL);
+        }, 750);
     }
 
     function spawnBoss() {
@@ -343,6 +404,7 @@ window.onload = function() {
         enemies.removeAll(true);
         deadBodies.removeAll(true);
         playerProjectiles.removeAll(true);
+        enemyProjectiles.removeAll(true);
 
         player.x = 100;
         player.y = cameraHeight/2;
