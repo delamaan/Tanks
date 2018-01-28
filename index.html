@@ -35,6 +35,9 @@ window.onload = function() {
 
     var bossFight = false;
     var bossArenaWidth = gameWidth - cameraWidth;
+    var win = false;
+
+    var ui = [];
 
     // ==================== //
     // Preload: load assets //
@@ -42,7 +45,7 @@ window.onload = function() {
 
     function preload() {
         game.load.image('goblin', 'sprites/goblins/Fatty.gif');
-        game.load.image('SuperFatty', 'sprites/bosses/SuperFatty.gif')
+        game.load.image('superFatty', 'sprites/bosses/SuperFatty.gif')
         game.load.image('tank', 'sprites/tanks/RedTank.gif');
         game.load.image('shell', 'sprites/tanks/RedTankShell.gif');
         game.load.image('dirt', 'sprites/tiles/TileDirt.gif');
@@ -79,22 +82,24 @@ window.onload = function() {
         // Groups: collection of sprites //
         // ============================= //
 
-        playerProjectiles = game.add.group();
-        playerProjectiles.enableBody = true;
+        bosses = game.add.group();
+        bosses.enableBody = true;
+        bosses.collideWorldBounds = true;
 
         enemies = game.add.group();
         enemies.enableBody = true;
         enemies.collideWorldBounds = true;
 
-        bosses = game.add.group();
-        bosses.enableBody = true;
-        bosses.collideWorldBounds = true;
+        playerProjectiles = game.add.group();
+        playerProjectiles.enableBody = true;
+
+        deadBodies = game.add.group();
 
         // ====== //
         // Player //
         // ====== //
 
-        player = game.add.sprite(100, 300, 'tank');
+        player = game.add.sprite(100, cameraHeight/2, 'tank');
         player.anchor.setTo(0.5, 0.5);
 
         game.physics.arcade.enable(player);
@@ -114,8 +119,7 @@ window.onload = function() {
         // Camera //
         // ====== //
 
-        game.camera.follow(player, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
-        game.camera.deadzone = new Phaser.Rectangle(100, 50, 200, cameraHeight);
+        initCamera();
     }
 
     // ================= //
@@ -183,6 +187,10 @@ window.onload = function() {
         if (!bossFight && game.input.keyboard.isDown(Phaser.Keyboard.B)) {
             player.x = 4200;
         }
+
+        if (win && game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+            restart();
+        }
     }
 
     // ========================== //
@@ -206,7 +214,7 @@ window.onload = function() {
         projectile.kill();
         enemy.kill();
 
-        var deadBody = game.add.sprite(enemy.x+16, enemy.y+16, 'goblin');
+        var deadBody = deadBodies.create(enemy.x+16, enemy.y+16, 'goblin');
         deadBody.rotation = 90;
         deadBody.anchor.setTo(0.5, 0.5);
     }
@@ -218,9 +226,13 @@ window.onload = function() {
 
         if (boss.health <= 0) {
             boss.kill();
-            var deadBody = game.add.sprite(boss.x+64, boss.y+64, 'SuperFatty');
+            var deadBody = deadBodies.create(boss.x+64, boss.y+64, 'superFatty');
             deadBody.rotation = 90;
             deadBody.anchor.setTo(0.5, 0.5);
+
+            win = true;
+
+            showWinDialog();
         }
     }
 
@@ -259,17 +271,17 @@ window.onload = function() {
         e.anchor.setTo(0.5, 0.5);
 
         // silly AI movement
-        setInterval(function() {
-            var speed = Math.floor(Math.random() * 51);
-            var horizontal = Math.floor(Math.random() * 3) - 1;
-            var vertical = Math.floor(Math.random() * 3) - 1;
-            e.body.velocity.x = horizontal * speed;
-            e.body.velocity.y = vertical * speed;
-        }, 100)
+        // setInterval(function() {
+        //     var speed = Math.floor(Math.random() * 51);
+        //     var horizontal = Math.floor(Math.random() * 3) - 1;
+        //     var vertical = Math.floor(Math.random() * 3) - 1;
+        //     e.body.velocity.x = horizontal * speed;
+        //     e.body.velocity.y = vertical * speed;
+        // }, 100);
     }
 
     function spawnBoss() {
-        boss = bosses.create(gameWidth - 250, gameHeight/2, 'SuperFatty');
+        boss = bosses.create(gameWidth - 250, gameHeight/2, 'superFatty');
         boss.body.setSize(64, 112, 32, 12);
         boss.anchor.setTo(0.5, 0.5);
         boss.health = 3;
@@ -296,6 +308,64 @@ window.onload = function() {
         if (player.x > gameWidth - tileSize) {
             player.x = gameWidth - tileSize;
         }
+    }
+
+    function showWinDialog() {
+        var bar = game.add.graphics();
+        bar.beginFill(0x000000, 0.3);
+        bar.drawRect(0, cameraHeight/2-100, cameraWidth, 200);
+        bar.fixedToCamera = true;
+
+        var style = { fill: '#fff', fontSize: "50px" };
+        var smallStyle = Object.assign({}, style);
+        smallStyle.fontSize = "20px";
+
+        var text = game.add.text(cameraWidth/2, cameraHeight/2 - 50, "Defeated: Super Fatty", style);
+        text.anchor.setTo(0.5, 0.5);
+        text.fixedToCamera = true;
+
+        var rankText = game.add.text(cameraWidth/2, cameraHeight/2 + 10, "Rank: A", style);
+        rankText.anchor.setTo(0.5, 0.5);
+        rankText.fixedToCamera = true;
+
+        var continueText = game.add.text(cameraWidth/2, cameraHeight/2 + 60, "Fire to Continue", smallStyle);
+        continueText.anchor.setTo(0.5, 0.5);
+        continueText.fixedToCamera = true;
+
+        ui.push(bar);
+        ui.push(text);
+        ui.push(rankText);
+        ui.push(continueText);
+    }
+
+    function restart() {
+        bosses.removeAll(true);
+        enemies.removeAll(true);
+        deadBodies.removeAll(true);
+        playerProjectiles.removeAll(true);
+
+        player.x = 100;
+        player.y = cameraHeight/2;
+
+        game.camera.x = 0;
+        game.camera.y = 0;
+
+        initCamera();
+
+        // clear ui
+        ui.forEach(function(item) {
+            item.destroy();
+        });
+
+        bossFight = false;
+        reloading = false;
+        win = false;
+    }
+
+    function initCamera() {
+        game.camera.follow(player, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
+        game.camera.deadzone = new Phaser.Rectangle(100, 50, 200, cameraHeight)
+            ;
     }
 };
 
