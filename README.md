@@ -1,16 +1,22 @@
 # Tanks
 
-Developed with Phaser (http://phaser.io/).
+A shooter game in the browser. Built with [Phaser](http://phaser.io/) and [Piskel](https://www.piskelapp.com/).
 
-## [5/7, Game of the Century Edition](https://ramblingware.github.io/Tanks/index.html)
+## Play Now!
 
-The votes are in:
-> Unpolished. Clunky. Boring... I love it.
 
-## How to Play Video Games For Dummies
+[![Tank](https://github.com/RamblingWare/Tanks/blob/master/sprites/tanks/RedTank.gif)]()&nbsp;[![Tank](https://github.com/RamblingWare/Tanks/blob/master/sprites/goblins/Fatty.gif)]()
 
-You're smart. Figure it out.
+# 🎮 [Click here to play](https://ramblingware.github.io/Tanks/index.html) 🎮
 
-## No Thanks
 
-To myself, for wasting valuable Netflix-ing time.
+## How to Play
+
+ - No installation! Open the link above to start.
+ - Use your keyboard arrow-keys to move.
+ - Press `spacebar` to shoot!
+ - Good Luck!
+
+## Thanks
+
+To the team, for wasting valuable time that could've been watching Netflix. 😄📺
