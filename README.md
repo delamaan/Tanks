@@ -1,4 +1,4 @@
-# Tanks
+# [![Tanks](https://github.com/RamblingWare/Tanks/blob/master/assets/img/tanks-logo.png)]()
 
 A shooter game in the browser. Built with [Phaser](http://phaser.io/) and [Piskel](https://www.piskelapp.com/).
 
@@ -12,10 +12,10 @@ A shooter game in the browser. Built with [Phaser](http://phaser.io/) and [Piske
 
 ## How to Play
 
- - No installation! Open the link above to start.
- - Use your keyboard arrow-keys to move.
- - Press `spacebar` to shoot!
- - Good Luck!
+ - ❌ No installation! Open the link above to start.
+ - 🔼◀️🔽▶️ Use your keyboard arrow-keys to move.
+ - 🔫 Press `spacebar` to shoot!
+ - ⭐ Good Luck!
 
 ## Thanks
 
