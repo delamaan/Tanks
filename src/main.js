@@ -26,7 +26,10 @@ window.onload = function() {
   var reloadTime = 1000;
   var bulletTTL = 1500;
 
-  var enemyShotSpeed = 300;
+  var kills = 0;
+  var bossKills = 0;
+
+  var enemyShotSpeed = 200;
 
   var bossFight = false;
   var bossArenaWidth = gameWidth - cameraWidth;
@@ -39,8 +42,8 @@ window.onload = function() {
   // ==================== //
 
   function preload() {
-    game.load.image('goblet', 'sprites/goblins/Goblet.gif');
-    game.load.image('axe', 'sprites/goblins/GobletBullet.gif');
+    game.load.image('tiny', 'sprites/goblins/Tiny.gif');
+    game.load.image('axe', 'sprites/goblins/TinyBullet.gif');
     game.load.image('fatty', 'sprites/goblins/Fatty.gif');
     game.load.image('spear', 'sprites/goblins/FattyBullet.gif');
     game.load.image('superFatty', 'sprites/bosses/SuperFatty.gif');
@@ -111,11 +114,28 @@ window.onload = function() {
     // Enemies //
     // ======= //
 
-    spawnFatty(1100, 300);
-    spawnFatty(1100, 500);
-    spawnGoblet(800, 200);
-    spawnGoblet(800, 400);
-    spawnGoblet(800, 600);
+    spawnFatty(800, 350);
+    spawnFatty(1100, 450);
+    spawnFatty(1600, 350);
+    spawnTiny(1700, 200);
+    spawnTiny(1800, 275);
+
+    spawnFatty(2825, 200);
+    spawnFatty(2825, 500);
+    spawnTiny(2800, 225);
+    spawnTiny(2700, 375);
+    spawnTiny(2800, 525);
+
+    spawnFatty(4700, 200);
+    spawnFatty(4700, 350);
+    spawnFatty(4700, 500);
+
+    spawnFatty(3400, 200);
+    spawnFatty(3500, 250);
+    spawnFatty(3600, 300);
+    spawnFatty(3700, 350);
+    spawnFatty(3400, 400);
+    spawnFatty(3500, 450);
 
     // ====== //
     // Camera //
@@ -212,6 +232,7 @@ window.onload = function() {
 
   // player bullets hitting enemies
   function hit(projectile, enemy) {
+    kills++;
     projectile.kill();
     enemy.kill();
     clearInterval(enemy.attack);
@@ -227,6 +248,7 @@ window.onload = function() {
     boss.body.velocity.x = 0;
 
     if (boss.health <= 0) {
+      bossKills++;
       boss.kill();
       var deadBody = deadBodies.create(boss.x+64, boss.y+64, 'superFatty');
       deadBody.rotation = 90;
@@ -241,6 +263,7 @@ window.onload = function() {
   function die(projectile, player) {
     projectile.kill();
     player.kill();
+    showLoseDialog();
   }
 
   // instantiate player bullet
@@ -299,8 +322,8 @@ window.onload = function() {
       // }, 100);
   }
 
-  function spawnGoblet(x, y) {
-    var e = enemies.create(x, y, 'goblet');
+  function spawnTiny(x, y) {
+    var e = enemies.create(x, y, 'tiny');
     // e.body.setSize()
     e.anchor.setTo(0.5, 0.5);
 
@@ -371,15 +394,43 @@ window.onload = function() {
     var smallStyle = Object.assign({}, style);
     smallStyle.fontSize = "20px";
 
-    var text = game.add.text(cameraWidth/2, cameraHeight/2 - 50, "Defeated: Super Fatty", style);
+    var text = game.add.text(cameraWidth/2, cameraHeight/2 - 50, "Mission: Accomplished", style);
     text.anchor.setTo(0.5, 0.5);
     text.fixedToCamera = true;
 
-    var rankText = game.add.text(cameraWidth/2, cameraHeight/2 + 10, "Rank: A", style);
+    var rankText = game.add.text(cameraWidth/2, cameraHeight/2 + 10, "Kills: " + (kills + bossKills), style);
     rankText.anchor.setTo(0.5, 0.5);
     rankText.fixedToCamera = true;
 
     var continueText = game.add.text(cameraWidth/2, cameraHeight/2 + 60, "Fire to Continue", smallStyle);
+    continueText.anchor.setTo(0.5, 0.5);
+    continueText.fixedToCamera = true;
+
+    ui.push(bar);
+    ui.push(text);
+    ui.push(rankText);
+    ui.push(continueText);
+  }
+
+  function showLoseDialog() {
+    var bar = game.add.graphics();
+    bar.beginFill(0x000000, 0.3);
+    bar.drawRect(0, cameraHeight/2-100, cameraWidth, 200);
+    bar.fixedToCamera = true;
+
+    var style = { fill: '#fff', fontSize: "50px" };
+    var smallStyle = Object.assign({}, style);
+    smallStyle.fontSize = "20px";
+
+    var text = game.add.text(cameraWidth/2, cameraHeight/2 - 50, "Mission: Failed", style);
+    text.anchor.setTo(0.5, 0.5);
+    text.fixedToCamera = true;
+
+    var rankText = game.add.text(cameraWidth/2, cameraHeight/2 + 10, "Kills: " + (kills + bossKills), style);
+    rankText.anchor.setTo(0.5, 0.5);
+    rankText.fixedToCamera = true;
+
+    var continueText = game.add.text(cameraWidth/2, cameraHeight/2 + 60, "Fire to Retry", smallStyle);
     continueText.anchor.setTo(0.5, 0.5);
     continueText.fixedToCamera = true;
 
