@@ -55,7 +55,8 @@ window.onload = function() {
     game.load.image('skyDirt', 'sprites/tiles/TileSkyDirt.gif');
     game.load.image('sky', 'sprites/tiles/TileSky2.gif');
 
-    game.load.audio('8-bit-ducky', 'sounds/8-bit-ducky.mp3');
+    game.load.audio('goblins1', 'sounds/Goblins1.mp3');
+    game.load.audio('goblins2', 'sounds/Goblins2.mp3');
   }
 
   // =========================================== //
@@ -152,8 +153,8 @@ window.onload = function() {
     // ====== //
     // Music  //
     // ====== //
-    var music = game.add.audio('8-bit-ducky');
-    music.play();
+    var music = game.add.audio('goblins1');
+    music.loopFull();
     music.volume = 1;
   }
 
