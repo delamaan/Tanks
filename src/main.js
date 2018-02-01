@@ -42,13 +42,15 @@ window.onload = function() {
   // ==================== //
 
   function preload() {
-    game.load.image('tiny', 'sprites/goblins/Tiny.gif');
-    game.load.image('axe', 'sprites/goblins/TinyBullet.gif');
-    game.load.image('fatty', 'sprites/goblins/Fatty.gif');
-    game.load.image('spear', 'sprites/goblins/FattyBullet.gif');
-    game.load.image('superFatty', 'sprites/bosses/SuperFatty.gif');
-    game.load.image('tank', 'sprites/tanks/RedTank.gif');
-    game.load.image('shell', 'sprites/tanks/RedTankShell.gif');
+    game.load.spritesheet('tiny', 'sprites/goblins/Tiny.png', 32, 32);
+    game.load.spritesheet('axe', 'sprites/goblins/TinyBullet.png', 32, 32);
+    game.load.spritesheet('fatty', 'sprites/goblins/Fatty.png', 64, 64);
+    game.load.spritesheet('spear', 'sprites/goblins/FattyBullet.png', 64, 64);
+    game.load.spritesheet('superFatty', 'sprites/bosses/SuperFatty.png', 128, 128);
+    game.load.spritesheet('boulder', 'sprites/bosses/Boulder.png', 64, 64);
+    game.load.spritesheet('tank', 'sprites/tanks/RedTank.png', 64, 64);
+    game.load.spritesheet('shell', 'sprites/tanks/RedTankShell.png', 64, 64);
+
     game.load.image('dirt', 'sprites/tiles/TileDirt.gif');
     game.load.image('skyDirt', 'sprites/tiles/TileSkyDirt.gif');
     game.load.image('sky', 'sprites/tiles/TileSky2.gif');
@@ -104,6 +106,8 @@ window.onload = function() {
     // ====== //
 
     player = game.add.sprite(100, cameraHeight/2, 'tank');
+    player.animations.add('playerAnimate');
+    player.animations.play('playerAnimate', 10, true);
     player.anchor.setTo(0.5, 0.5);
 
     game.physics.arcade.enable(player);
@@ -272,6 +276,8 @@ window.onload = function() {
     var yPos = player.y - 32 - 10;
 
     var shot = playerProjectiles.create(xPos, yPos, 'shell');
+    shot.animations.add('shotAnimate');
+    shot.animations.play('shotAnimate', 12, true);
 
     shot.body.velocity.x = shotSpeed;
     shot.body.setSize(18, 10, 22, 26);
@@ -296,11 +302,15 @@ window.onload = function() {
   // instantiate enemy
   function spawnFatty(x, y) {
     var e = enemies.create(x, y, 'fatty');
+    e.animations.add('fattyAnimate');
+    e.animations.play('fattyAnimate', 2, true);
     e.body.setSize(32, 56, 16, 4);
     e.anchor.setTo(0.5, 0.5);
 
     e.attack = setInterval(function() {
       var spear = enemyProjectiles.create(e.x, e.y - e.height/2, 'spear');
+      spear.animations.add('spearAnimate');
+      spear.animations.play('spearAnimate', 10, true);
       spear.body.setSize(30, 14, 2, 24);
       spear.body.velocity.x = -2 * enemyShotSpeed;
 
@@ -324,16 +334,22 @@ window.onload = function() {
 
   function spawnTiny(x, y) {
     var e = enemies.create(x, y, 'tiny');
+    e.animations.add('tinyAnimate');
+    e.animations.play('tinyAnimate', 2, true);
     // e.body.setSize()
     e.anchor.setTo(0.5, 0.5);
 
     e.attack = setInterval(function() {
       var axe1 = enemyProjectiles.create(e.x, e.y - e.height/2, 'axe');
+      axe1.animations.add('axeAnimate');
+      axe1.animations.play('axeAnimate', 10, true);
       axe1.body.setSize(16, 16, 8, 8);
       axe1.body.velocity.x = -1 * enemyShotSpeed;
       axe1.body.velocity.y = -0.5 * enemyShotSpeed;
 
       var axe2 = enemyProjectiles.create(e.x, e.y - e.height/2, 'axe');
+      axe2.animations.add('axeAnimate');
+      axe2.animations.play('axeAnimate', 10, true);
       axe2.body.setSize(16, 16, 8, 8);
       axe2.body.velocity.x = -1 * enemyShotSpeed;
       axe2.body.velocity.y = 0.5 * enemyShotSpeed;
@@ -356,6 +372,8 @@ window.onload = function() {
 
   function spawnBoss() {
     boss = bosses.create(gameWidth - 250, gameHeight/2, 'superFatty');
+    boss.animations.add('bossAnimate');
+    boss.animations.play('bossAnimate', 2, true);
     boss.body.setSize(64, 112, 32, 12);
     boss.anchor.setTo(0.5, 0.5);
     boss.health = 3;
