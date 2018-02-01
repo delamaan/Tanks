@@ -54,6 +54,8 @@ window.onload = function() {
     game.load.image('dirt', 'sprites/tiles/TileDirt.gif');
     game.load.image('skyDirt', 'sprites/tiles/TileSkyDirt.gif');
     game.load.image('sky', 'sprites/tiles/TileSky2.gif');
+
+    game.load.audio('8-bit-ducky', 'sounds/8-bit-ducky.mp3');
   }
 
   // =========================================== //
@@ -146,6 +148,13 @@ window.onload = function() {
     // ====== //
 
     initCamera();
+
+    // ====== //
+    // Music  //
+    // ====== //
+    var music = game.add.audio('8-bit-ducky');
+    music.play();
+    music.volume = 1;
   }
 
   // ================= //
@@ -485,7 +494,6 @@ window.onload = function() {
 
   function initCamera() {
     game.camera.follow(player, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
-    game.camera.deadzone = new Phaser.Rectangle(100, 50, 200, cameraHeight)
-        ;
+    game.camera.deadzone = new Phaser.Rectangle(100, 50, 200, cameraHeight);
   }
 };
