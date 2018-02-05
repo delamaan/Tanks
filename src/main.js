@@ -144,17 +144,18 @@ window.onload = function() {
   // ================= //
 
   function update() {
-    // ========== //
-    // Collisions //
-    // ========== //
-
-    game.physics.arcade.collide(playerProjectiles, enemies, hit);
-    game.physics.arcade.collide(playerProjectiles, bosses, damage);
-    game.physics.arcade.collide(enemyProjectiles, player, die);
-
     // ===== //
     // State //
     // ===== //
+    if (win) {
+      if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+        currentLevel++;
+        restart();
+      }
+      else {
+        return;
+      }
+    }
 
     if (isDead) {
       if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
@@ -171,6 +172,14 @@ window.onload = function() {
     else {
       restrictHorizontalMovement();
     }
+
+    // ========== //
+    // Collisions //
+    // ========== //
+
+    game.physics.arcade.collide(playerProjectiles, enemies, hit);
+    game.physics.arcade.collide(playerProjectiles, bosses, damage);
+    game.physics.arcade.collide(enemyProjectiles, player, die);
 
     // =============== //
     // Player Movement //
@@ -212,10 +221,6 @@ window.onload = function() {
     if (!bossFight && game.input.keyboard.isDown(Phaser.Keyboard.B)) {
       player.x = 4200;
     }
-
-    if (win && game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
-      restart();
-    }
   }
 
   // ========================== //
@@ -240,6 +245,7 @@ window.onload = function() {
     projectile.kill();
     enemy.kill();
     clearInterval(enemy.attack);
+    clearInterval(enemy.move);
 
     var deadBody = deadBodies.create(enemy.x+16, enemy.y+16, enemy.key);
     deadBody.rotation = 90;
@@ -324,16 +330,38 @@ window.onload = function() {
         }
         spear.destroy();
       }, bulletTTL);
-    }, 1500);
+    }, 750);
 
-      // silly AI movement
-      // setInterval(function() {
-      //     var speed = Math.floor(Math.random() * 51);
-      //     var horizontal = Math.floor(Math.random() * 3) - 1;
-      //     var vertical = Math.floor(Math.random() * 3) - 1;
-      //     e.body.velocity.x = horizontal * speed;
-      //     e.body.velocity.y = vertical * speed;
-      // }, 100);
+    e.moveState = 0;
+
+    e.move = setInterval(function() {
+      e.moveState++;
+
+      if (e.moveState > 3) {
+        e.moveState = 0;
+      }
+
+      var moveSpeed = 60;
+
+      switch(e.moveState) {
+        case 0:
+          e.body.velocity.x = moveSpeed;
+          e.body.velocity.y = moveSpeed;
+          break;
+        case 1:
+          e.body.velocity.x = -moveSpeed;
+          e.body.velocity.y = moveSpeed;
+          break;
+        case 2:
+          e.body.velocity.x = -moveSpeed;
+          e.body.velocity.y = -moveSpeed;
+          break;
+        case 3:
+          e.body.velocity.x = moveSpeed;
+          e.body.velocity.y = -moveSpeed;
+        break;
+      }
+    }, 1500);
   }
 
   function spawnTiny(x, y) {
@@ -370,8 +398,39 @@ window.onload = function() {
           axe2.kill();
         }
         axe2.destroy();
-    }, bulletTTL);
+      }, bulletTTL);
     }, 750);
+
+    e.moveState = 0;
+
+    e.move = setInterval(function() {
+      var moveSpeed = 100;
+
+      e.moveState++;
+
+      if (e.moveState > 3) {
+        e.moveState = 0;
+      }
+
+      switch(e.moveState) {
+        case 0:
+          e.body.velocity.x = moveSpeed;
+          e.body.velocity.y = 0;
+          break;
+        case 1:
+          e.body.velocity.x = 0;
+          e.body.velocity.y = moveSpeed;
+          break;
+        case 2:
+          e.body.velocity.x = -moveSpeed;
+          e.body.velocity.y = 0;
+          break;
+        case 3:
+          e.body.velocity.x = 0;
+          e.body.velocity.y = -moveSpeed;
+          break;
+      }
+    }, 2000);
   }
 
   function spawnBoss() {
@@ -381,6 +440,78 @@ window.onload = function() {
     boss.body.setSize(64, 112, 32, 12);
     boss.anchor.setTo(0.5, 0.5);
     boss.health = 3;
+
+    boss.moveState = -1;
+
+    boss.move = setInterval(function() {
+      boss.moveState++;
+
+      if (boss.moveState > 11) {
+        boss.moveState = 0;
+      }
+
+      switch(boss.moveState) {
+        case 0:
+          boss.body.velocity.x = 200;
+          boss.body.velocity.y = 100;
+          break;
+
+        case 1:
+          boss.body.velocity.x = 0;
+          boss.body.velocity.y = 0;
+          break;
+
+        case 2:
+          boss.body.velocity.x = 0;
+          boss.body.velocity.y = 100;
+          break;
+
+        case 3:
+          boss.body.velocity.x = 0;
+          boss.body.velocity.y = 0;
+          break;
+
+        case 4:
+          boss.body.velocity.x = -200;
+          boss.body.velocity.y = 100;
+          break;
+
+        case 5:
+          boss.body.velocity.x = 0;
+          boss.body.velocity.y = 0;
+          break;
+
+        case 6:
+          boss.body.velocity.x = 200;
+          boss.body.velocity.y = -100;
+          break;
+
+        case 7:
+          boss.body.velocity.x = 0;
+          boss.body.velocity.y = 0;
+          break;
+
+        case 8:
+          boss.body.velocity.x = 0;
+          boss.body.velocity.y = -100;
+          break;
+
+        case 9:
+          boss.body.velocity.x = 0;
+          boss.body.velocity.y = 0;
+          break;
+
+        case 10:
+          boss.body.velocity.x = -200;
+          boss.body.velocity.y = -100;
+          break;
+
+        case 11:
+          boss.body.velocity.x = 0;
+          boss.body.velocity.y = 0;
+          break;
+      }
+    }, 500);
   }
 
   function checkCameraPosition() {
@@ -463,8 +594,12 @@ window.onload = function() {
   }
 
   function restart() {
+    bosses.forEach(function(boss) {
+      clearInterval(boss.move);
+    });
     enemies.forEach(function(enemy) {
       clearInterval(enemy.attack);
+      clearInterval(enemy.move);
     });
 
     bosses.removeAll(true);
@@ -494,9 +629,14 @@ window.onload = function() {
     win = false;
     isDead = false;
 
+    kills = 0;
+    bossKills = 0;
+
     loadLevel(currentLevel);
 
-    player.revive();
+    if (!player.alive) {
+      player.revive();
+    }
   }
 
   function initCamera() {
@@ -505,6 +645,7 @@ window.onload = function() {
   }
 
   function loadLevel(index) {
+
     switch(index) {
       case 1:
         spawnFatty(800, 350);
