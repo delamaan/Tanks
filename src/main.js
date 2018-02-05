@@ -34,6 +34,8 @@ window.onload = function() {
   var bossFight = false;
   var bossArenaWidth = gameWidth - cameraWidth;
   var win = false;
+  var isDead = false;
+  var currentLevel = 1;
 
   var ui = [];
 
@@ -121,28 +123,7 @@ window.onload = function() {
     // Enemies //
     // ======= //
 
-    spawnFatty(800, 350);
-    spawnFatty(1100, 450);
-    spawnFatty(1600, 350);
-    spawnTiny(1700, 200);
-    spawnTiny(1800, 275);
-
-    spawnFatty(2825, 200);
-    spawnFatty(2825, 500);
-    spawnTiny(2800, 225);
-    spawnTiny(2700, 375);
-    spawnTiny(2800, 525);
-
-    spawnFatty(4700, 200);
-    spawnFatty(4700, 350);
-    spawnFatty(4700, 500);
-
-    spawnFatty(3400, 200);
-    spawnFatty(3500, 250);
-    spawnFatty(3600, 300);
-    spawnFatty(3700, 350);
-    spawnFatty(3400, 400);
-    spawnFatty(3500, 450);
+    loadLevel(currentLevel);
 
     // ====== //
     // Camera //
@@ -174,6 +155,15 @@ window.onload = function() {
     // ===== //
     // State //
     // ===== //
+
+    if (isDead) {
+      if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+        restart();
+      }
+      else {
+        return;
+      }
+    }
 
     if (!bossFight) {
       checkCameraPosition();
@@ -277,6 +267,10 @@ window.onload = function() {
   function die(projectile, player) {
     projectile.kill();
     player.kill();
+
+    isDead = true;
+    game.camera.follow(null);
+
     showLoseDialog();
   }
 
@@ -469,11 +463,18 @@ window.onload = function() {
   }
 
   function restart() {
+    enemies.forEach(function(enemy) {
+      clearInterval(enemy.attack);
+    });
+
     bosses.removeAll(true);
     enemies.removeAll(true);
     deadBodies.removeAll(true);
     playerProjectiles.removeAll(true);
     enemyProjectiles.removeAll(true);
+
+    player.body.velocity.x = 0;
+    player.body.velocity.y = 0;
 
     player.x = 100;
     player.y = cameraHeight/2;
@@ -491,10 +492,50 @@ window.onload = function() {
     bossFight = false;
     reloading = false;
     win = false;
+    isDead = false;
+
+    loadLevel(currentLevel);
+
+    player.revive();
   }
 
   function initCamera() {
     game.camera.follow(player, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
     game.camera.deadzone = new Phaser.Rectangle(100, 50, 200, cameraHeight);
+  }
+
+  function loadLevel(index) {
+    switch(index) {
+      case 1:
+        spawnFatty(800, 350);
+        spawnFatty(1100, 450);
+        spawnFatty(1600, 350);
+        spawnTiny(1700, 200);
+        spawnTiny(1800, 275);
+
+        spawnFatty(2825, 200);
+        spawnFatty(2825, 500);
+        spawnTiny(2800, 225);
+        spawnTiny(2700, 375);
+        spawnTiny(2800, 525);
+
+        spawnFatty(4700, 200);
+        spawnFatty(4700, 350);
+        spawnFatty(4700, 500);
+
+        spawnFatty(3400, 200);
+        spawnFatty(3500, 250);
+        spawnFatty(3600, 300);
+        spawnFatty(3700, 350);
+        spawnFatty(3400, 400);
+        spawnFatty(3500, 450);
+        break;
+
+      case 2:
+        break;
+
+      case 3:
+        break;
+    }
   }
 };
