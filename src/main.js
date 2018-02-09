@@ -38,6 +38,11 @@ window.onload = function() {
   var currentLevel = 1;
 
   var ui = [];
+  var music = [];
+  var musicIndex = 0;
+  var musicCount = 3;
+  var changingMusic = false;
+  var musicVolume = 0.5;
 
   // ==================== //
   // Preload: load assets //
@@ -57,8 +62,12 @@ window.onload = function() {
     game.load.image('skyDirt', 'sprites/tiles/TileSkyDirt.gif');
     game.load.image('sky', 'sprites/tiles/TileSky2.gif');
 
+    game.load.audio('march1', 'sounds/March_of_the_Flies.mp3');
     game.load.audio('goblins1', 'sounds/Goblins1.mp3');
     game.load.audio('goblins2', 'sounds/Goblins2.mp3');
+
+    game.load.audio('mainGun', 'sounds/MainGun.mp3');
+    game.load.audio('goblinHit', 'sounds/GoblinHit.mp3');
   }
 
   // =========================================== //
@@ -134,9 +143,17 @@ window.onload = function() {
     // ====== //
     // Music  //
     // ====== //
-    var music = game.add.audio('goblins1');
-    music.loopFull();
-    music.volume = 1;
+    music[0] = game.add.audio('march1');
+    music[1] = game.add.audio('goblins1');
+    music[2] = game.add.audio('goblins2');
+    music[0].loopFull();
+    music[0].volume = musicVolume;
+
+    // ====== //
+    // Sounds //
+    // ====== //
+    mainGunSound = game.add.audio('mainGun');
+    goblinHitSound = game.add.audio('goblinHit');
   }
 
   // ================= //
@@ -144,6 +161,24 @@ window.onload = function() {
   // ================= //
 
   function update() {
+  	// ===== //
+  	// Music //
+  	// ===== //
+    if (!changingMusic && game.input.keyboard.isDown(Phaser.Keyboard.N)) {
+    	changingMusic = true;
+    	music[musicIndex].stop();
+   		musicIndex++;
+   		if (musicIndex >= musicCount) {
+   			musicIndex = 0;
+   		}
+   		music[musicIndex].loopFull();
+   		music[musicIndex].volume = musicVolume;
+    }
+
+    if (changingMusic && !game.input.keyboard.isDown(Phaser.Keyboard.N)) {
+    	changingMusic = false;
+    }
+
     // ===== //
     // State //
     // ===== //
@@ -221,6 +256,7 @@ window.onload = function() {
     if (!bossFight && game.input.keyboard.isDown(Phaser.Keyboard.B)) {
       player.x = 4200;
     }
+
   }
 
   // ========================== //
@@ -246,6 +282,8 @@ window.onload = function() {
     enemy.kill();
     clearInterval(enemy.attack);
     clearInterval(enemy.move);
+
+    goblinHitSound.play();
 
     var deadBody = deadBodies.create(enemy.x+16, enemy.y+16, enemy.key);
     deadBody.rotation = 90;
@@ -291,6 +329,8 @@ window.onload = function() {
 
     shot.body.velocity.x = shotSpeed;
     shot.body.setSize(18, 10, 22, 26);
+
+    mainGunSound.play();
 
     // reloading
     reloading = true;
